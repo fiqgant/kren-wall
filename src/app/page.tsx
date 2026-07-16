@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Camera, QrCode } from "lucide-react";
+import { ArrowRight, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogoBar } from "@/components/logo-bar";
 import { AnimatedBackground } from "@/components/animated-background";
@@ -64,24 +64,7 @@ export default function LandingPage() {
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.5}>
-          <div className="glass mt-4 flex items-center gap-4 rounded-2xl p-4 shadow-sm">
-            <div
-              className="flex size-16 items-center justify-center rounded-xl border-2 border-dashed border-primary/40 bg-white"
-              aria-label="Tempat kode QR"
-            >
-              <QrCode className="size-8 text-primary" aria-hidden />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold">Pindai & Upload</p>
-              <p className="text-xs text-muted-foreground">
-                Upload fotomu, tag @politeknikwbi
-                <br />
-                & @wbi_nexgenofe, menangkan hadiah!
-              </p>
-            </div>
-          </div>
-        </FadeIn>
+
       </section>
 
       <footer className="relative z-10 pb-6 text-center text-xs text-muted-foreground">
