@@ -36,7 +36,7 @@ export default function LandingPage() {
 
         <FadeIn delay={0.3}>
           <p className="max-w-xs text-sm text-muted-foreground">
-            Bagikan momenmu dan jadilah bagian dari KREN Wall.
+            Bagikan momen kamu di acara KREN! Foto dan komentar terbaik akan dipilih. Tag @politeknikwbi dan @wbi_nexgenofe di Instagram untuk dapat hadiah menarik.
           </p>
         </FadeIn>
 
@@ -73,11 +73,11 @@ export default function LandingPage() {
               <QrCode className="size-8 text-primary" aria-hidden />
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold">Pindai untuk ikutan</p>
+              <p className="text-sm font-semibold">Pindai & Upload</p>
               <p className="text-xs text-muted-foreground">
-                Arahkan kamera ke kode QR
+                Upload fotomu, tag @politeknikwbi
                 <br />
-                dan tinggalkan jejakmu.
+                & @wbi_nexgenofe, menangkan hadiah!
               </p>
             </div>
           </div>

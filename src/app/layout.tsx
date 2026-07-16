@@ -22,14 +22,14 @@ export const metadata: Metadata = {
     template: "%s | KREN Wall",
   },
   description:
-    "Bagikan momenmu dan jadilah bagian dari KREN Wall. KREN 2026 — ARE YOU NEXT? Expo kewirausahaan Politeknik Wilmar Bisnis Indonesia dan WBIIC.",
+    "Bagikan momen kamu di acara KREN 2026. Foto dan komentar terbaik dipilih — tag @politeknikwbi dan @wbi_nexgenofe di Instagram untuk hadiah menarik. Expo kewirausahaan Politeknik Wilmar Bisnis Indonesia dan WBIIC.",
   keywords: ["KREN 2026", "KREN Wall", "WBI", "WBIIC", "entrepreneurship expo"],
   icons: {
     icon: "https://wbiic.wbi.ac.id/favicon.png",
   },
   openGraph: {
     title: "KREN Wall — KREN 2026",
-    description: "Bagikan momenmu dan jadilah bagian dari KREN Wall.",
+    description: "Bagikan momen kamu di acara KREN 2026. Tag @politeknikwbi dan @wbi_nexgenofe untuk hadiah menarik.",
     type: "website",
   },
 };
