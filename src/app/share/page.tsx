@@ -275,7 +275,7 @@ export default function SharePage() {
           {croppedUrl && (
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium">Pilih bingkai</legend>
-              <div className="flex gap-3 overflow-x-auto pb-1">
+              <div className="grid grid-cols-5 gap-2">
                 {FRAMES.map((f) => (
                   <button
                     key={f.id}
@@ -283,7 +283,7 @@ export default function SharePage() {
                     onClick={() => setFrameId(f.id)}
                     aria-pressed={frameId === f.id}
                     aria-label={`Bingkai: ${f.name}`}
-                    className={`relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                    className={`relative aspect-[9/16] w-full overflow-hidden rounded-lg border-2 transition-all ${
                       frameId === f.id
                         ? "border-primary ring-2 ring-primary/30"
                         : "border-border opacity-70 hover:opacity-100"
@@ -299,7 +299,7 @@ export default function SharePage() {
                       src={f.src}
                       alt=""
                       fill
-                      sizes="80px"
+                      sizes="20vw"
                       className="pointer-events-none object-cover"
                     />
                   </button>
