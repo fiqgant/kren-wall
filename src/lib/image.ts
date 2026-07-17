@@ -124,15 +124,13 @@ export function buildStoragePath(extension: string): string {
 }
 
 /**
- * Composites the photo with its PNG frame on a canvas and triggers a
- * download. Frames are never baked into stored images — only here,
- * at export time.
+ * Composites the photo with its PNG frame on a canvas. Frames are never
+ * baked into stored images — only here, at export/share time.
  */
-export async function downloadFramedImage(
+export async function composeFramedBlob(
   photoUrl: string,
-  frameSrc: string,
-  fileName: string
-): Promise<void> {
+  frameSrc: string
+): Promise<Blob> {
   const [photo, frame] = await Promise.all([
     loadImage(photoUrl),
     loadImage(frameSrc),
@@ -147,7 +145,16 @@ export async function downloadFramedImage(
   ctx.drawImage(photo, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
   ctx.drawImage(frame, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
 
-  const blob = await canvasToBlob(canvas, "image/png", 1);
+  return canvasToBlob(canvas, "image/png", 1);
+}
+
+/** Composites the photo with its frame and triggers a file download. */
+export async function downloadFramedImage(
+  photoUrl: string,
+  frameSrc: string,
+  fileName: string
+): Promise<void> {
+  const blob = await composeFramedBlob(photoUrl, frameSrc);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

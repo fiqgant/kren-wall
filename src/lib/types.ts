@@ -44,3 +44,13 @@ export interface BannedDevice {
 export const MESSAGE_MAX_LENGTH = 300;
 export const NAME_MAX_LENGTH = 60;
 export const SUBMIT_COOLDOWN_MS = 30_000;
+
+/** sessionStorage key the share page uses to hand the just-submitted
+ * photo off to the thanks page for the Instagram Story share prompt. */
+export const LAST_SHARE_KEY = "kren-last-share";
+
+export interface LastShare {
+  photoUrl: string;
+  frameId: number;
+  name: string;
+}

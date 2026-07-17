@@ -21,6 +21,7 @@ import {
   type CroppedImage,
 } from "@/lib/image";
 import {
+  LAST_SHARE_KEY,
   MESSAGE_MAX_LENGTH,
   NAME_MAX_LENGTH,
   SUBMIT_COOLDOWN_MS,
@@ -150,6 +151,12 @@ export default function SharePage() {
       if (!res.ok) throw new Error("Gagal mengirim");
 
       localStorage.setItem(COOLDOWN_KEY, String(Date.now()));
+      if (photoUrl) {
+        sessionStorage.setItem(
+          LAST_SHARE_KEY,
+          JSON.stringify({ photoUrl, frameId, name: name.trim() })
+        );
+      }
       router.push("/thanks");
     } catch {
       toast.error("Ada yang salah. Coba lagi ya.");
