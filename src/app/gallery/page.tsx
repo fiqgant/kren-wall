@@ -120,25 +120,27 @@ export default function GalleryPage() {
       </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-h-[90dvh] gap-4 overflow-y-auto sm:max-w-md">
+        <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
           {selected && (
             <>
-              <DialogHeader>
-                <DialogTitle>{selected.name}</DialogTitle>
-                <DialogDescription>
-                  {formatDate(selected.created_at)}
-                </DialogDescription>
-              </DialogHeader>
-              <FramedPhoto
-                photoUrl={selected.photo_url!}
-                frameId={selected.frame}
-                alt={`Foto dari ${selected.name}`}
-                sizes="400px"
-                priority
-                className="mx-auto w-full max-w-xs"
-              />
-              <p className="text-sm break-words">{selected.message}</p>
-              <div className="flex gap-3">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6 pb-4">
+                <DialogHeader>
+                  <DialogTitle>{selected.name}</DialogTitle>
+                  <DialogDescription>
+                    {formatDate(selected.created_at)}
+                  </DialogDescription>
+                </DialogHeader>
+                <FramedPhoto
+                  photoUrl={selected.photo_url!}
+                  frameId={selected.frame}
+                  alt={`Foto dari ${selected.name}`}
+                  sizes="400px"
+                  priority
+                  className="mx-auto w-full max-w-xs max-h-[50dvh]"
+                />
+                <p className="text-sm break-words">{selected.message}</p>
+              </div>
+              <div className="flex shrink-0 gap-3 border-t bg-background p-6 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 <Button
                   onClick={handleDownload}
                   disabled={downloading}
