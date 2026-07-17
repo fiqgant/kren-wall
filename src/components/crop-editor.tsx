@@ -4,12 +4,13 @@ import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { Loader2, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCroppedWebp } from "@/lib/image";
+import { getCroppedImage, type CroppedImage } from "@/lib/image";
+import { toast } from "sonner";
 
 interface CropEditorProps {
   /** Object URL of the original picked file. */
   imageSrc: string;
-  onApply: (blob: Blob) => void;
+  onApply: (result: CroppedImage) => void;
   onCancel: () => void;
 }
 
@@ -32,8 +33,10 @@ export function CropEditor({ imageSrc, onApply, onCancel }: CropEditorProps) {
     if (!croppedAreaPixels) return;
     setProcessing(true);
     try {
-      const blob = await getCroppedWebp(imageSrc, croppedAreaPixels, rotation);
-      onApply(blob);
+      const result = await getCroppedImage(imageSrc, croppedAreaPixels, rotation);
+      onApply(result);
+    } catch {
+      toast.error("Gagal memproses foto. Coba foto lain ya.");
     } finally {
       setProcessing(false);
     }

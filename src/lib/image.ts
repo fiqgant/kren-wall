@@ -32,16 +32,37 @@ function canvasToBlob(
   });
 }
 
+let webpSupport: boolean | null = null;
+
+/** Safari (all iOS versions as of writing) can't *encode* WebP via canvas
+ * — it silently falls back to PNG, which breaks our size-targeting loop.
+ * Detect once and use JPEG there instead. */
+function supportsWebpEncoding(): boolean {
+  if (webpSupport !== null) return webpSupport;
+  const canvas = document.createElement("canvas");
+  canvas.width = 1;
+  canvas.height = 1;
+  webpSupport = canvas.toDataURL("image/webp").startsWith("data:image/webp");
+  return webpSupport;
+}
+
+export interface CroppedImage {
+  blob: Blob;
+  contentType: string;
+  extension: string;
+}
+
 /**
  * Crops the source image to the pixel area selected in react-easy-crop,
- * applies rotation, resizes to 720x1280 and compresses to WebP (~80%,
- * stepping quality down until the result fits the 300KB target).
+ * applies rotation, resizes to 720x1280 and compresses (~80%, stepping
+ * quality down until the result fits the 300KB target). Uses WebP where
+ * supported, JPEG elsewhere (Safari/iOS).
  */
-export async function getCroppedWebp(
+export async function getCroppedImage(
   imageSrc: string,
   cropPixels: Area,
   rotation = 0
-): Promise<Blob> {
+): Promise<CroppedImage> {
   const image = await loadImage(imageSrc);
 
   // Draw the rotated source onto an intermediate canvas large enough
@@ -81,22 +102,25 @@ export async function getCroppedWebp(
     OUTPUT_HEIGHT
   );
 
+  const contentType = supportsWebpEncoding() ? "image/webp" : "image/jpeg";
+  const extension = contentType === "image/webp" ? "webp" : "jpg";
+
   let quality = WEBP_QUALITY;
-  let blob = await canvasToBlob(out, "image/webp", quality);
+  let blob = await canvasToBlob(out, contentType, quality);
   while (blob.size > TARGET_MAX_BYTES && quality > 0.5) {
     quality -= 0.1;
-    blob = await canvasToBlob(out, "image/webp", quality);
+    blob = await canvasToBlob(out, contentType, quality);
   }
-  return blob;
+  return { blob, contentType, extension };
 }
 
-/** Builds the dated storage path: photos/YYYY/MM/DD/<uuid>.webp */
-export function buildStoragePath(): string {
+/** Builds the dated storage path: photos/YYYY/MM/DD/<uuid>.<extension> */
+export function buildStoragePath(extension: string): string {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
-  return `photos/${yyyy}/${mm}/${dd}/${crypto.randomUUID()}.webp`;
+  return `photos/${yyyy}/${mm}/${dd}/${crypto.randomUUID()}.${extension}`;
 }
 
 /**

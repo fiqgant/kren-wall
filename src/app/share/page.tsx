@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ImagePlus, Info, Loader2, Send, X } from "lucide-react";
+import { ArrowLeft, Camera, ImagePlus, Info, Loader2, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,11 @@ import { LogoBar } from "@/components/logo-bar";
 import { CropEditor } from "@/components/crop-editor";
 import { createClient } from "@/lib/supabase/client";
 import { FRAMES, DEFAULT_FRAME_ID, getFrame } from "@/lib/frames";
-import { buildStoragePath, MAX_UPLOAD_BYTES } from "@/lib/image";
+import {
+  buildStoragePath,
+  MAX_UPLOAD_BYTES,
+  type CroppedImage,
+} from "@/lib/image";
 import {
   MESSAGE_MAX_LENGTH,
   NAME_MAX_LENGTH,
@@ -28,12 +32,13 @@ const COOLDOWN_KEY = "kren-last-submit";
 export default function SharePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [frameId, setFrameId] = useState(DEFAULT_FRAME_ID);
   const [rawImage, setRawImage] = useState<string | null>(null);
-  const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
+  const [croppedImage, setCroppedImage] = useState<CroppedImage | null>(null);
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,11 +50,18 @@ export default function SharePage() {
     };
   }, [rawImage, croppedUrl]);
 
+  const IMAGE_EXTENSIONS = /\.(jpe?g|png|heic|heif|webp|gif)$/i;
+
   function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    // iOS Safari can report an empty MIME type for HEIC photos picked
+    // from the library — fall back to checking the file extension.
+    const looksLikeImage =
+      file.type.startsWith("image/") ||
+      (file.type === "" && IMAGE_EXTENSIONS.test(file.name));
+    if (!looksLikeImage) {
       toast.error("Pilih file gambar ya.");
       return;
     }
@@ -60,14 +72,14 @@ export default function SharePage() {
     setRawImage(URL.createObjectURL(file));
   }
 
-  function handleCropApply(blob: Blob) {
-    setCroppedBlob(blob);
-    setCroppedUrl(URL.createObjectURL(blob));
+  function handleCropApply(result: CroppedImage) {
+    setCroppedImage(result);
+    setCroppedUrl(URL.createObjectURL(result.blob));
     setRawImage(null);
   }
 
   function clearPhoto() {
-    setCroppedBlob(null);
+    setCroppedImage(null);
     setCroppedUrl(null);
   }
 
@@ -95,13 +107,13 @@ export default function SharePage() {
     try {
       let photoUrl: string | null = null;
 
-      if (croppedBlob) {
+      if (croppedImage) {
         const supabase = createClient();
-        const path = buildStoragePath();
+        const path = buildStoragePath(croppedImage.extension);
         const { error: uploadError } = await supabase.storage
           .from("kren-wall")
-          .upload(path, croppedBlob, {
-            contentType: "image/webp",
+          .upload(path, croppedImage.blob, {
+            contentType: croppedImage.contentType,
             cacheControl: "31536000",
           });
         if (uploadError) throw new Error(uploadError.message);
@@ -218,6 +230,14 @@ export default function SharePage() {
               className="sr-only"
               onChange={handleFilePick}
             />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={handleFilePick}
+            />
             {croppedUrl ? (
               <Button
                 type="button"
@@ -228,22 +248,34 @@ export default function SharePage() {
                 <X className="size-4" /> Hapus foto
               </Button>
             ) : (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="h-24 w-full border-dashed"
-              >
-                <ImagePlus className="size-5 text-primary" />
-                Tambah foto (maks. 10MB)
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="h-24 flex-1 flex-col border-dashed"
+                >
+                  <Camera className="size-5 text-primary" />
+                  Kamera
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-24 flex-1 flex-col border-dashed"
+                >
+                  <ImagePlus className="size-5 text-primary" />
+                  Galeri
+                </Button>
+              </div>
             )}
+            <p className="text-xs text-muted-foreground">Maks. 10MB</p>
           </div>
 
           {croppedUrl && (
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium">Pilih bingkai</legend>
-              <div className="flex gap-3">
+              <div className="flex gap-3 overflow-x-auto pb-1">
                 {FRAMES.map((f) => (
                   <button
                     key={f.id}
@@ -251,7 +283,7 @@ export default function SharePage() {
                     onClick={() => setFrameId(f.id)}
                     aria-pressed={frameId === f.id}
                     aria-label={`Bingkai: ${f.name}`}
-                    className={`relative aspect-[9/16] w-20 overflow-hidden rounded-lg border-2 transition-all ${
+                    className={`relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                       frameId === f.id
                         ? "border-primary ring-2 ring-primary/30"
                         : "border-border opacity-70 hover:opacity-100"
