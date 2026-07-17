@@ -6,6 +6,9 @@ import {
   SUBMIT_COOLDOWN_MS,
   type SubmitPayload,
 } from "@/lib/types";
+import { FRAMES, DEFAULT_FRAME_ID } from "@/lib/frames";
+
+const ALLOWED_FRAME_IDS = new Set(FRAMES.map((f) => f.id));
 
 const lastSubmitByIp = new Map<string, number>();
 const MAX_TRACKED_IPS = 10_000;
@@ -65,7 +68,9 @@ export async function POST(request: NextRequest) {
   const message = String(payload.message ?? "")
     .trim()
     .slice(0, MESSAGE_MAX_LENGTH);
-  const frame = payload.frame === 2 ? 2 : 1;
+  const frame = ALLOWED_FRAME_IDS.has(payload.frame)
+    ? payload.frame
+    : DEFAULT_FRAME_ID;
   const photoUrl =
     typeof payload.photo_url === "string" &&
     payload.photo_url.includes("/storage/v1/object/public/kren-wall/")
