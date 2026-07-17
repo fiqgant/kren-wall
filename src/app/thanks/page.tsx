@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Copy, Loader2, Share2 } from "lucide-react";
+import { Check, Copy, Download, Loader2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LogoBar } from "@/components/logo-bar";
 import { AnimatedBackground } from "@/components/animated-background";
-import { composeFramedBlob } from "@/lib/image";
+import { composeFramedBlob, downloadFramedImage } from "@/lib/image";
 import { getFrame } from "@/lib/frames";
 import { LAST_SHARE_KEY, type LastShare } from "@/lib/types";
 
@@ -18,6 +18,7 @@ const IG_CAPTION =
 export default function ThanksPage() {
   const [lastShare, setLastShare] = useState<LastShare | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem(LAST_SHARE_KEY);
@@ -61,6 +62,22 @@ export default function ThanksPage() {
       }
     } finally {
       setSharing(false);
+    }
+  }
+
+  async function handleDownload() {
+    if (!lastShare) return;
+    setDownloading(true);
+    try {
+      await downloadFramedImage(
+        lastShare.photoUrl,
+        getFrame(lastShare.frameId).src,
+        `kren-wall-${lastShare.name.toLowerCase().replace(/\s+/g, "-")}.png`
+      );
+    } catch {
+      toast.error("Gagal mengunduh. Coba lagi ya.");
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -120,7 +137,7 @@ export default function ThanksPage() {
           >
             <p className="text-sm font-semibold">Bagikan ke Instagram Story</p>
             <p className="mt-1 text-xs text-muted-foreground">{IG_CAPTION}</p>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 onClick={handleShareInstagram}
                 disabled={sharing}
@@ -135,10 +152,24 @@ export default function ThanksPage() {
                 Bagikan
               </Button>
               <Button
+                onClick={handleDownload}
+                disabled={downloading}
+                variant="outline"
+                size="sm"
+                className="flex-1 rounded-full"
+              >
+                {downloading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Download className="size-4" />
+                )}
+                Unduh
+              </Button>
+              <Button
                 onClick={handleCopyCaption}
                 variant="outline"
                 size="sm"
-                className="rounded-full"
+                className="w-full rounded-full"
               >
                 <Copy className="size-4" /> Salin teks
               </Button>
